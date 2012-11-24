@@ -60,12 +60,32 @@
                 comboBreaker.tearDown();
             });
 
-            test("Cleanup tests", 0, function () {
+            test("Cleanup tests", 2, function () {
                 var comboBreaker = new ComboBreaker(['a', 'b', 'c'], function () {
-                    ok(false, "Should not fire due to tearDown call");
+                    ok(false, "Success callback should not fire because of tearDown call");
                 });
                 comboBreaker.tearDown();
                 triggerCombo();
+
+                stop();
+                comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                    success: function () {},
+                    step: function () {
+                        ok(true, "Step callbacks before tearDown occur as normal");
+                    },
+                    timeout: function () {
+                        ok(false, "Timeout callbacks should not fire if tearDown occurs after combo starts");
+                    }
+                }, {
+                    resetTime: 200
+                });
+                triggerCombo(['a', 'b']);
+                comboBreaker.tearDown();
+                triggerCombo(['c']);
+
+                setTimeout(function () {
+                    start();
+                }, 250);
             });
 
             test("Step callback tests", function () {

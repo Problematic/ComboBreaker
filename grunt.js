@@ -4,7 +4,7 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     meta: {
-      version: '0.2.0',
+      version: '0.2.1',
       banner: '/*! ComboBreaker - v<%= meta.version %> - ' +
         '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
         '* https://github.com/Problematic/ComboBreaker\n' +
