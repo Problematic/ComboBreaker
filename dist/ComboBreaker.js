@@ -1,4 +1,4 @@
-/*! ComboBreaker - v0.1.0 - 2012-11-20
+/*! ComboBreaker - v0.1.1 - 2012-11-23
 * https://github.com/Problematic/ComboBreaker
 * Copyright (c) 2012 Derek Stobbe; Licensed MIT */
 
@@ -6,7 +6,7 @@
     "use strict";
 
     var ComboBreaker = function (combo, callback, options) {
-        var index = 0, timeout = null;
+        var root = this, index = 0, timeout = null;
 
         if (!(this instanceof ComboBreaker)) { return new ComboBreaker(combo, callback, options); }
 
@@ -30,17 +30,17 @@
         $(this.options.target).keyup(function (e) {
             // for some reason, jQuery always gives us back the upper-case
             // ASCII value for e.which, which brings us to:
-            var expected = this.options.keyMap[this.combo[index]] ||
-                this.combo[index].toUpperCase().charCodeAt();
+            var expected = root.options.keyMap[root.combo[index]] ||
+                root.combo[index].toUpperCase().charCodeAt();
 
             clearTimeout(timeout);
 
             if (e.which === expected) {
-                if (typeof this.options.stepCallback === "function") {
-                    this.options.stepCallback(this.combo, this.combo[index]);
+                if (typeof root.options.stepCallback === "function") {
+                    root.options.stepCallback(root.combo, root.combo[index]);
                 }
-                if (index === this.combo.length - 1) {
-                    this.callback(this.combo);
+                if (index === root.combo.length - 1) {
+                    root.callback(root.combo);
                     index = 0;
 
                     return;
@@ -49,11 +49,11 @@
                 index++;
                 timeout = setTimeout(function () {
                     index = 0;
-                }.bind(this), this.options.resetTime);
-            } else if (this.options.resetOnMistake === true) {
+                }, root.options.resetTime);
+            } else if (root.options.resetOnMistake === true) {
                 index = 0;
             }
-        }.bind(this));
+        });
     };
 
     window.ComboBreaker = ComboBreaker;
