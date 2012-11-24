@@ -1,14 +1,20 @@
-/*! ComboBreaker - v0.1.2 - 2012-11-23
+/*! ComboBreaker - v0.2.0 - 2012-11-24
 * https://github.com/Problematic/ComboBreaker
 * Copyright (c) 2012 Derek Stobbe; Licensed MIT */
 
 (function ($) {
     "use strict";
 
-    var ComboBreaker = function (combo, callback, options) {
+    var ComboBreaker = function (combo, callbacks, options) {
         var root = this, index = 0, timeout = null;
 
-        if (!(this instanceof ComboBreaker)) { return new ComboBreaker(combo, callback, options); }
+        if (!(this instanceof ComboBreaker)) { return new ComboBreaker(combo, callbacks, options); }
+
+        if (typeof callbacks === "function") {
+            callbacks = { success: callbacks };
+        }
+
+        this.callbacks = callbacks;
 
         this.options = $.extend({}, {
             keyMap: {
@@ -21,11 +27,9 @@
             },
             resetTime: 1000,
             resetOnMistake: true,
-            stepCallback: null,
             target: document
         }, options);
         this.combo = combo;
-        this.callback = callback;
 
         this._keyEventCallback = function (e) {
             // for some reason, jQuery always gives us back the upper-case
@@ -36,11 +40,11 @@
             clearTimeout(timeout);
 
             if (e.which === expected) {
-                if (typeof root.options.stepCallback === "function") {
-                    root.options.stepCallback(root.combo, root.combo[index]);
+                if (root.callbacks.step) {
+                    root.callbacks.step(root.combo, root.combo[index]);
                 }
                 if (index === root.combo.length - 1) {
-                    root.callback(root.combo);
+                    root.callbacks.success(root.combo, root.combo[index]);
                     index = 0;
 
                     return;
@@ -49,9 +53,15 @@
                 index++;
                 timeout = setTimeout(function () {
                     index = 0;
+                    if (root.callbacks.timeout) {
+                        root.callbacks.timeout(root.combo, root.combo[index]);
+                    }
                 }, root.options.resetTime);
-            } else if (root.options.resetOnMistake === true) {
+            } else if (index > 0 && root.options.resetOnMistake === true) {
                 index = 0;
+                if (root.callbacks.mistake) {
+                    root.callbacks.mistake(root.combo, root.combo[index]);
+                }
             }
         };
 
@@ -63,4 +73,7 @@
     };
 
     window.ComboBreaker = ComboBreaker;
+    if (typeof define === "function") {
+        define(ComboBreaker);
+    }
 }(window.jQuery));
