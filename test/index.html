@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ComboBreaker Test Suite</title>
+    <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.10.0.css" />
+</head>
+<body>
+    <div id="qunit"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="../lib/ComboBreaker.js"></script>
+    <script src="http://code.jquery.com/qunit/qunit-1.10.0.js"></script>
+    <script>
+        var doc = $(document), comboBreaker, getKeyEvent = function (key) {
+            var event = $.Event("keyup");
+            event.which = key.toUpperCase().charCodeAt();
+
+            return event;
+        }, triggerCombo = function (combo) {
+            var i;
+
+            if (typeof combo === "undefined") {
+                combo = ['a', 'b', 'c'];
+            }
+
+            for (i = 0; i < combo.length; i++) {
+                doc.trigger(getKeyEvent(combo[i]));
+            }
+        };
+
+        test("ComboBreaker function tests", 3, function () {
+            var comboBreaker;
+
+            equal(typeof window.ComboBreaker, "function", "window.ComboBreaker exists and is a function");
+
+            comboBreaker = new ComboBreaker(["a"], function () {});
+            ok(comboBreaker instanceof ComboBreaker, "Using ComboBreaker as a constructor returns a ComboBreaker object");
+            comboBreaker.tearDown();
+
+            comboBreaker = ComboBreaker(["b"], function () {});
+            ok(comboBreaker instanceof ComboBreaker, "Using ComboBreaker as a function still returns a ComboBreaker object");
+            comboBreaker.tearDown();
+        });
+
+        test("ComboBreaker keypress tests", 8, function () {
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], function () {
+                ok(true, "Correct keycombo fires function callback");
+            });
+            triggerCombo();
+            comboBreaker.tearDown();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], function () {
+                ok(false, "Should not fire due to tearDown call");
+            });
+            comboBreaker.tearDown();
+            triggerCombo();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                success: function () {
+                    ok(true, "Correct keycombo fires object literal success callback");
+                }
+            });
+            triggerCombo();
+            comboBreaker.tearDown();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                success: function () {},
+                step: function () {
+                    ok(true, "Step callback fires for each keypress");
+                }
+            });
+            triggerCombo();
+            comboBreaker.tearDown();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                success: function () {
+                    ok(false, "Should not be called due to user mistake in keying combo");
+                },
+                mistake: function () {
+                    ok(true, "Mistake callback fires on user mistake in keying combo");
+                }
+            });
+            triggerCombo(['a', 'b', 'd', 'c']);
+            comboBreaker.tearDown();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                success: function () {
+                    ok(true, "Success callback fires with user mistake if options.resetOnMistake is false");
+                },
+                mistake: function () {
+                    ok(false, "Should not be called with options.resetOnMistake set to false");
+                }
+            }, {
+                resetOnMistake: false
+            });
+            triggerCombo(['a', 'b', 'd', 'c']);
+            comboBreaker.tearDown();
+
+            comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                success: function () {
+                    ok(false, "Should not fire due to timeout");
+                },
+                timeout: function () {
+                    ok(true, "Timeout callback should fire after 100ms");
+                    comboBreaker.tearDown();
+
+                    start();
+                }
+            }, {
+                resetTime: 100
+            });
+
+            stop();
+            triggerCombo(['a', 'b']);
+        });
+    </script>
+</body>
+</html>
