@@ -1,4 +1,4 @@
-/*! ComboBreaker - v0.1.1 - 2012-11-23
+/*! ComboBreaker - v0.1.2 - 2012-11-23
 * https://github.com/Problematic/ComboBreaker
 * Copyright (c) 2012 Derek Stobbe; Licensed MIT */
 
@@ -27,7 +27,7 @@
         this.combo = combo;
         this.callback = callback;
 
-        $(this.options.target).keyup(function (e) {
+        this._keyEventCallback = function (e) {
             // for some reason, jQuery always gives us back the upper-case
             // ASCII value for e.which, which brings us to:
             var expected = root.options.keyMap[root.combo[index]] ||
@@ -53,7 +53,13 @@
             } else if (root.options.resetOnMistake === true) {
                 index = 0;
             }
-        });
+        };
+
+        $(this.options.target).keyup(this._keyEventCallback);
+    };
+
+    ComboBreaker.prototype.tearDown = function () {
+        $(this.options.target).unbind("keyup", this._keyEventCallback);
     };
 
     window.ComboBreaker = ComboBreaker;
