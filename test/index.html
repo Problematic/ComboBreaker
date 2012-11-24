@@ -141,6 +141,22 @@
                 triggerCombo(['1', '2', '3']);
                 comboBreaker.tearDown();
             });
+
+            test("Combo callback argument tests", 4, function () {
+                var comboArray = ['a', 'b', 'c'], keyCombo, comboBreaker;
+
+                comboBreaker = new ComboBreaker(['a', 'b', 'c'], {
+                    success: function (combo, index) {
+                        deepEqual(combo, ['a', 'b', 'c'], "'combo' callback argument should equal the combo passed to the constructor");
+                    },
+                    step: function (combo, index) {
+                        equal(index, comboArray.shift(), "'" + index + "' should be the latest keypress in the combo");
+                    }
+                });
+
+                triggerCombo(['a', 'b', 'c']);
+                comboBreaker.tearDown();
+            });
         }());
     </script>
 </body>
